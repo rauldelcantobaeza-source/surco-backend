@@ -90,3 +90,25 @@ async def webhook(request: Request, db: Session = Depends(get_db)):
 
     enviar_mensaje(chat_id, f"✅ Registrado en {parcela_encontrada.nombre} como '{tipo}': {texto}")
     return {"ok": True}
+
+
+@router.get("/configurar-rapido")
+def configurar_rapido(nombre: str, email: str, password: str, chat_id: str, db: Session = Depends(get_db)):
+    """Atajo pensado para pegar como URL en el navegador (sin Swagger ni curl):
+    crea la cuenta si no existe, o solo actualiza el chat_id si el email ya
+    estaba registrado, y deja todo vinculado con Telegram en un solo paso."""
+    usuario = db.query(models.Usuario).filter(models.Usuario.email == email).first()
+    if usuario:
+        usuario.telegram_chat_id = str(chat_id)
+        db.commit()
+        return {"ok": True, "mensaje": f"Cuenta existente '{email}' vinculada a Telegram."}
+
+    usuario = models.Usuario(
+        nombre=nombre,
+        email=email,
+        password_hash=auth.hash_password(password),
+        telegram_chat_id=str(chat_id),
+    )
+    db.add(usuario)
+    db.commit()
+    return {"ok": True, "mensaje": f"Cuenta '{email}' creada y vinculada a Telegram."}
