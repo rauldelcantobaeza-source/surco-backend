@@ -112,3 +112,17 @@ def configurar_rapido(nombre: str, email: str, password: str, chat_id: str, db: 
     db.add(usuario)
     db.commit()
     return {"ok": True, "mensaje": f"Cuenta '{email}' creada y vinculada a Telegram."}
+
+
+@router.get("/crear-parcela-rapida")
+def crear_parcela_rapida(chat_id: str, nombre: str, area_ha: float = 0, ubicacion: str = "", db: Session = Depends(get_db)):
+    """Otro atajo para pegar como URL: crea una parcela usando tu chat_id de
+    Telegram para identificar tu cuenta (no hace falta login ni Swagger)."""
+    usuario = db.query(models.Usuario).filter(models.Usuario.telegram_chat_id == chat_id).first()
+    if not usuario:
+        return {"ok": False, "mensaje": "No hay ninguna cuenta vinculada a ese chat_id todavía."}
+
+    parcela = models.Parcela(usuario_id=usuario.id, nombre=nombre, area_ha=area_ha or None, ubicacion=ubicacion or None)
+    db.add(parcela)
+    db.commit()
+    return {"ok": True, "mensaje": f"Parcela '{nombre}' creada para {usuario.email}."}
