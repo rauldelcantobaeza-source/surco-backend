@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 
 from app.database import Base, engine
 from app.config import settings
-from app.routers import auth_router, parcelas, cultivos, tareas, gastos, fotos, clima, fitosanitarios, telegram
+from app.routers import auth_router, parcelas, cultivos, tareas, gastos, fotos, clima, fitosanitarios, telegram, admin, manejos
 
 # Para un proyecto en marcha usa Alembic (migraciones versionadas) en vez de
 # create_all. Se deja así para que puedas arrancar de inmediato.
@@ -28,6 +28,8 @@ app.include_router(fotos.router)
 app.include_router(clima.router)
 app.include_router(fitosanitarios.router)
 app.include_router(telegram.router)
+app.include_router(admin.router)
+app.include_router(manejos.router)
 
 
 @app.get("/salud")
