@@ -60,9 +60,40 @@ class Cultivo(Base):
     etapa = Column(Enum(EtapaCultivo, name="etapa_cultivo"), nullable=False, default=EtapaCultivo.semilla)
     fecha_siembra = Column(Date)
     fecha_cosecha_est = Column(Date)
+    crop_key = Column(Text)
+    numero_plantas = Column(BigInteger, default=0)
+    marco_plantacion = Column(Text)
+    rendimiento_kg_m2_custom = Column(Numeric(6, 2))
     creado_en = Column(DateTime(timezone=True), server_default=func.now())
 
     parcela = relationship("Parcela", back_populates="cultivos")
+    manejos = relationship("Manejo", back_populates="cultivo", cascade="all, delete-orphan")
+
+
+class TipoManejo(str, enum.Enum):
+    riego = "riego"
+    fertilizante = "fertilizante"
+    fitosanitario = "fitosanitario"
+    otro = "otro"
+
+
+class Manejo(Base):
+    """Bitácora día a día de manejos por cultivo (riego, fertilización,
+    fitosanitarios), con cantidad y valor opcionales para dejar registro
+    financiero ligado al cultivo."""
+    __tablename__ = "manejos"
+    id = uuid_pk()
+    cultivo_id = Column(UUID(as_uuid=True), ForeignKey("cultivos.id", ondelete="CASCADE"), nullable=False)
+    fecha = Column(Date, nullable=False)
+    tipo = Column(Enum(TipoManejo, name="tipo_manejo"), nullable=False, default=TipoManejo.otro)
+    producto = Column(Text)
+    dosis = Column(Text)
+    cantidad = Column(Text)
+    valor = Column(Numeric(12, 2))
+    notas = Column(Text)
+    creado_en = Column(DateTime(timezone=True), server_default=func.now())
+
+    cultivo = relationship("Cultivo", back_populates="manejos")
 
 
 class TipoTarea(str, enum.Enum):
