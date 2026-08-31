@@ -53,3 +53,12 @@ def crear(datos: schemas.ManejoCrear, db: Session = Depends(get_db), usuario: mo
 def eliminar(manejo_id: uuid.UUID, db: Session = Depends(get_db), usuario: models.Usuario = Depends(auth.usuario_actual)):
     manejo = (
         db.query(models.Manejo)
+        .join(models.Cultivo)
+        .join(models.Parcela)
+        .filter(models.Manejo.id == manejo_id, models.Parcela.usuario_id == usuario.id)
+        .first()
+    )
+    if not manejo:
+        raise HTTPException(status_code=404, detail="Manejo no encontrado")
+    db.delete(manejo)
+    db.commit()
