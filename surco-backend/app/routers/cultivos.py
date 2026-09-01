@@ -54,6 +54,22 @@ def avanzar_etapa(cultivo_id: uuid.UUID, db: Session = Depends(get_db), usuario:
     return cultivo
 
 
+@router.patch("/{cultivo_id}/rendimiento", response_model=schemas.CultivoOut)
+def actualizar_rendimiento(cultivo_id: uuid.UUID, valor: float, db: Session = Depends(get_db), usuario: models.Usuario = Depends(auth.usuario_actual)):
+    cultivo = (
+        db.query(models.Cultivo)
+        .join(models.Parcela)
+        .filter(models.Cultivo.id == cultivo_id, models.Parcela.usuario_id == usuario.id)
+        .first()
+    )
+    if not cultivo:
+        raise HTTPException(status_code=404, detail="Cultivo no encontrado")
+    cultivo.rendimiento_kg_m2_custom = valor
+    db.commit()
+    db.refresh(cultivo)
+    return cultivo
+
+
 @router.delete("/{cultivo_id}", status_code=204)
 def eliminar(cultivo_id: uuid.UUID, db: Session = Depends(get_db), usuario: models.Usuario = Depends(auth.usuario_actual)):
     cultivo = (
